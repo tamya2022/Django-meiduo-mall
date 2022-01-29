@@ -1,0 +1,8 @@
+# 短信的过期时间
+SMSCODE_EXPIRE_TIME = 300
+
+# 短信频发送法的时间
+SMSCODE_SEND_TIME = 60
+
+# 图片验证码时间
+IMAGE_CODE_EXPIRE_TIME = 300
