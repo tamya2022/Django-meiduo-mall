@@ -205,3 +205,9 @@ LOGGING = {
 
 # 指向自定义的模型，覆盖默认的User模型，形式子应用名.模型类
 AUTH_USER_MODEL = 'users.User'
+
+# 指定自定义的用户认证后端
+AUTHENTICATION_BACKENDS = ['apps.users.utils.UsernameMobileAuthBackend']
+
+# 设置 登录 的路由
+LOGIN_URL = '/login/'
