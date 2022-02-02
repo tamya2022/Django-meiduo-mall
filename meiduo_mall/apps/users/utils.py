@@ -1,7 +1,10 @@
 import re
 import logging
+
 from django.contrib.auth.backends import ModelBackend
 from apps.users.models import User
+from meiduo_mall import settings
+from utils.secret import SecretOauth
 
 logger = logging.getLogger('django')
 
@@ -29,3 +32,13 @@ def get_user_by_account(account):
         return None
     else:
         return user
+
+
+def generate_verify_email_url(user):
+    data_dict = {'user_id': user.id, 'email': user.email}
+
+    secret_data = SecretOauth().dumps(data_dict)
+
+    verify_url = settings.EMAIL_ACTIVE_URL + '?token=' + secret_data
+
+    return verify_url

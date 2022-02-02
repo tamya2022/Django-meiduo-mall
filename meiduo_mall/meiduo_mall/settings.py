@@ -83,7 +83,7 @@ DATABASES = {
         # 'ENGINE': 'django.db.backends.sqlite3',
         # 'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
         'ENGINE': 'django.db.backends.mysql',  # 数据库引擎
-        'HOST': '192.168.2.104',  # 数据库主机
+        'HOST': '192.168.2.106',  # 数据库主机
         'PORT': 3306,  # 数据库端口
         'USER': 'root',  # 数据库用户名
         'PASSWORD': '13306remote',  # 数据库用户密码
@@ -211,3 +211,13 @@ AUTHENTICATION_BACKENDS = ['apps.users.utils.UsernameMobileAuthBackend']
 
 # 设置 登录 的路由
 LOGIN_URL = '/login/'
+
+# 网易邮箱的配置
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'  # 指定邮件后端
+EMAIL_HOST = 'smtp.163.com'  # 发邮件主机
+EMAIL_PORT = 25  # 发邮件端口
+EMAIL_HOST_USER = '17826807088@163.com'  # 授权的邮箱
+EMAIL_HOST_PASSWORD = 'UHEHWMYHCUJJFJWQ'  # 邮箱授权时获得的密码，非注册登录密码
+EMAIL_FROM = '17826807088@163.com'  # 发件人抬头
+EMAIL_ACTIVE_URL = 'http://127.0.0.1:8000/emails/verification/'  # 激活地址
+DEFAULT_FROM_EMAIL = '17826807088@163.com'  # 这一项一定要添加内容和EMAIL_HOST_USER需要一致

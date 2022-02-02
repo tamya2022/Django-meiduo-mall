@@ -18,15 +18,15 @@ var vm = new Vue({
     // ES6语法
     mounted() {
         // 额外处理用户数据
-        this.email_active = (this.email_active=='True') ? true : false;
-        this.set_email = (this.email=='') ? true : false;
+        this.email_active = (this.email_active == 'True') ? true : false;
+        this.set_email = (this.email == '') ? true : false;
 
         // 请求浏览历史记录
         //this.browse_histories();
     },
     methods: {
         // 检查email格式
-        check_email(){
+        check_email() {
             var re = /^[a-z0-9][\w\.\-]*@[a-z0-9\-]+(\.[a-z]{2,5}){1,2}$/;
             if (re.test(this.email)) {
                 this.error_email = false;
@@ -37,25 +37,25 @@ var vm = new Vue({
             }
         },
         // 取消保存
-        cancel_email(){
+        cancel_email() {
             this.email = '';
             this.error_email = false;
         },
         // 保存email
-        save_email(){
+        save_email() {
             // 检查email格式
             this.check_email();
 
             if (this.error_email == false) {
                 var url = this.host + '/emails/';
                 axios.put(url, {
-                        email: this.email
-                    }, {
-                        headers: {
-                            'X-CSRFToken':getCookie('csrftoken')
-                        },
-                        responseType: 'json'
-                    })
+                    email: this.email
+                }, {
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    responseType: 'json'
+                })
                     .then(response => {
                         if (response.data.code == '0') {
                             this.set_email = false;
@@ -74,14 +74,14 @@ var vm = new Vue({
             }
         },
         // 请求浏览历史记录
-        browse_histories(){
+        browse_histories() {
             var url = this.host + '/browse_histories/';
             axios.get(url, {
-                    responseType: 'json'
-                })
+                responseType: 'json'
+            })
                 .then(response => {
                     this.histories = response.data.skus;
-                    for(var i=0; i<this.histories.length; i++){
+                    for (var i = 0; i < this.histories.length; i++) {
                         this.histories[i].url = '/goods/' + this.histories[i].id + '.html';
                     }
                 })

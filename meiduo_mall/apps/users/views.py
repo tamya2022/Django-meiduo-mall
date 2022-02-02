@@ -1,3 +1,4 @@
+import json
 import re
 import logging
 
@@ -13,17 +14,47 @@ from apps.users import constants
 from apps.users.models import User
 from django.contrib.auth import authenticate, login, logout
 
+from utils.response_code import RETCODE
+
 logger = logging.getLogger('django')
+
+
+class EmailView(LoginRequiredMixin, View):
+    def put(self, request):
+        data = json.loads(request.body.decode())
+        email = data.get('email')
+
+        # 校验参数
+        if not email:
+            return http.HttpResponseForbidden('缺少email参数')
+        if not re.match(r'^[a-z0-9][\w\.\-]*@[a-z0-9\-]+(\.[a-z]{2,5}){1,2}$', email):
+            return http.HttpResponseForbidden('参数email有误')
+
+        # 赋值email字段
+        try:
+            request.user.email = email
+            request.user.save()
+        except Exception as e:
+            logger.error(e)
+            return http.JsonResponse({'code': RETCODE.DBERR, 'errmsg': '添加邮箱失败'})
+
+        from apps.users.utils import generate_verify_email_url
+        verify_url = generate_verify_email_url(request.user)
+        # print(verify_url)
+        from celery_tasks.email.tasks import send_verify_email
+        send_verify_email.delay(email, verify_url)
+        # 响应添加邮箱结果
+        return http.JsonResponse({'code': RETCODE.OK, 'errmsg': '添加邮箱成功'})
 
 
 # 用户中心
 class UserInfoView(LoginRequiredMixin, View):
     def get(self, request):
         context = {
-            # 'username': request.user.username,
-            # 'mobile': request.user.mobile,
-            # 'email': request.user.email,
-            # 'email_active': request.user.email_active,
+            'username': request.user.username,
+            'mobile': request.user.mobile,
+            'email': request.user.email,
+            'email_active': request.user.email_active,
         }
 
         return render(request, 'user_center_info.html', context)
@@ -86,7 +117,14 @@ class LoginView(View):
             # 记住用户：None表示两周后过期
             request.session.set_expiry(None)
 
-        response = redirect(reverse('contents:index'))
+        # response = redirect(reverse('contents:index'))
+        # 接收next的值==路由
+        next = request.GET.get('next')
+        if next:
+            response = redirect(next)
+        else:
+            # 6.返回响应结果
+            response = redirect(reverse('contents:index'))
         # 注册时用户名写入到cookie，有效期15天
         response.set_cookie('username', user.username, max_age=3600 * 24 * 15)
         # 响应登录结果
