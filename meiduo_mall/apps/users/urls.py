@@ -14,4 +14,6 @@ urlpatterns = [
     url(r'^info/$', views.UserInfoView.as_view(), name="info"),
     # 增加邮箱
     url(r'^emails/$', views.EmailView.as_view(), name="email"),
+    # 8. 激活邮箱 emails/verification/
+    url(r'^emails/verification/$', views.VerifyEmailView.as_view(), name="verifyemail"),
 ]

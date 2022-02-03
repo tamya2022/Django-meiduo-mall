@@ -10,13 +10,48 @@ from django.urls import reverse
 from django.views import View
 from django_redis import get_redis_connection
 # Create your views here.
+from itsdangerous import BadData
+
 from apps.users import constants
 from apps.users.models import User
 from django.contrib.auth import authenticate, login, logout
 
 from utils.response_code import RETCODE
+from utils.secret import SecretOauth
 
 logger = logging.getLogger('django')
+
+
+class VerifyEmailView(View):
+    def get(self, request):
+        # 1.接收参数  token
+        token = request.GET.get('token')
+        # 校验参数：判断token是否为空和过期，提取user
+        if not token:
+            return http.HttpResponseBadRequest('缺少token')
+
+        # 2.解密 token
+        try:
+            token_dict = SecretOauth().loads(token)
+        except BadData:
+            return http.HttpResponseForbidden('无效的token')
+
+        # 3.校验 userid email
+        try:
+            user = User.objects.get(id=token_dict['user_id'], email=token_dict['email'])
+        except User.DoesNotExist as e:
+            return http.HttpResponseForbidden('无效的token')
+
+        # 4. 修改 email_active
+        try:
+            user.email_active = True
+            user.save()
+        except Exception as e:
+            logger.error(e)
+            return http.HttpResponseServerError('激活邮件失败')
+
+        # 5.成功 重定向的首页
+        return redirect(reverse('users:info'))
 
 
 class EmailView(LoginRequiredMixin, View):
