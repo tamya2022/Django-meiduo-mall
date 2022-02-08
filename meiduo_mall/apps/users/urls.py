@@ -15,5 +15,16 @@ urlpatterns = [
     # 增加邮箱
     url(r'^emails/$', views.EmailView.as_view(), name="email"),
     # 8. 激活邮箱 emails/verification/
-    url(r'^emails/verification/$', views.VerifyEmailView.as_view(), name="verifyemail"),
+    url(r'^emails/verification/$', views.VerifyEmailView.as_view(), name="verify_email"),
+    # 9.收货地址  address/
+    url(r'^address/$', views.AddressView.as_view(), name="address"),
+    # 10. 新增地址 addresses/create/
+    url(r'^addresses/create/$', views.CreateAddressView.as_view(), name="create_address"),
+    # 11. 修改地址 addresses/(?P<address_id>\d+)/
+    url(r'^addresses/(?P<address_id>\d+)/$', views.UpdateAddressView.as_view(), name="update_address"),
+    # # 12 .addresses/(?P<address_id>\d+)/default/
+    url(r'^addresses/(?P<address_id>\d+)/default/$', views.DefaultAddressView.as_view(), name="default_address"),
+    # # 13 . 修改标题
+    url(r'^addresses/(?P<address_id>\d+)/title/$', views.UpdateTitleAddressView.as_view(), name="title_address"),
+    url(r'^password/$', views.ChangePasswordView.as_view(), name="password"),
 ]

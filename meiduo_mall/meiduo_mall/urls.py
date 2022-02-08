@@ -24,4 +24,5 @@ urlpatterns = [
     url(r'^', include('apps.contents.urls', namespace='contents')),
     # 3.验证码
     url(r'^', include('apps.verifications.urls', namespace="verifications")),
+    url(r'^', include('apps.areas.urls', namespace="areas")),
 ]
