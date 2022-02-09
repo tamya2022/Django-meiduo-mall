@@ -33,9 +33,9 @@ class ChangePasswordView(LoginRequiredMixin, View):
     def post(self, request):
         """实现修改密码逻辑"""
         # 接收参数
-        old_password = request.POST.get('old_password')
-        new_password = request.POST.get('new_password')
-        new_password2 = request.POST.get('new_password2')
+        old_password = request.POST.get('old_pwd')
+        new_password = request.POST.get('new_pwd')
+        new_password2 = request.POST.get('new_cpwd')
 
         # 校验参数
         if not all([old_password, new_password, new_password2]):
