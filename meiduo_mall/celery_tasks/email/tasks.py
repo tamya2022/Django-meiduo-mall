@@ -9,6 +9,7 @@ import logging
 # name：异步任务别名
 # retry_backoff：异常自动重试的时间间隔 第n次(retry_backoff×2^(n-1))s
 # max_retries：异常自动重试次数的上限
+
 logger = logging.getLogger('django')
 
 

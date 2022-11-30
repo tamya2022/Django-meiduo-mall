@@ -148,7 +148,7 @@ var vm = new Vue({
             }
         },
         // 加入购物车
-        add_cart(){
+        add_carts(){
             var url = this.host + '/carts/';
             axios.post(url, {
                 sku_id: parseInt(this.sku_id),

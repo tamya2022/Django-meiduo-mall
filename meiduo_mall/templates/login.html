@@ -4,6 +4,7 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
     <title>美多商城-登录</title>
+    <link crossorigin="" rel="shortcut icon" type="image/x-icon" href="{{ static('favicon.ico') }}">
     <link rel="stylesheet" type="text/css" href="{{ static('css/reset.css') }}">
     <link rel="stylesheet" type="text/css" href="{{ static('css/main.css') }}">
     <script type="text/javascript" src="{{ static('js/vue-2.5.16.js') }}"></script>
@@ -26,7 +27,7 @@
                 </div>
                 <div class="form_con">
                     <div class="form_input cur">
-                        <form method="post" class="login">
+                        <form method="post" class="login" @submit="on_submit" v-cloak>
                             {{ csrf_input }}
                             <input v-model="username" type="text" name="username" class="name_input"
                                    placeholder="请输入用户名或手机号" @blur="check_username">
@@ -47,11 +48,8 @@
                     </div>
                 </div>
                 <div class="third_party">
-                    <a href="javascript:;" class="qq_login" @click="qq_login">QQ</a>
-                    <a href="#" class="weixin_login">微信</a>
                     <a href="{{ url('users:register') }}" class="register_btn">立即注册</a>
                 </div>
-
             </div>
         </div>
     </div>

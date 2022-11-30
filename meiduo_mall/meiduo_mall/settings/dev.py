@@ -13,10 +13,9 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 import os
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-import sys
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
+# BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.11/howto/deployment/checklist/
 
@@ -37,11 +36,15 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    # 追加导包路径后可简写为users
-    'apps.users',
+    'haystack',  # 全文检索
+
+    'apps.users',  # 用户模块，若追加导包路径后可简写为users
     'apps.contents',
     'apps.verifications',
-    'apps.areas'
+    'apps.areas',
+    'apps.goods',
+    'apps.carts',
+    'apps.orders'
 ]
 
 MIDDLEWARE = [
@@ -88,7 +91,7 @@ DATABASES = {
         'PORT': 3306,  # 数据库端口
         'USER': 'root',  # 数据库用户名
         'PASSWORD': '13306remote',  # 数据库用户密码
-        'NAME': 'meiduo_mall'  # 数据库名字
+        'NAME': 'meiduo_mall'  # 数据库名
     }
 }
 
@@ -111,20 +114,23 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 CACHES = {
-    "default": {  # 默认
+    # 默认---0号数据库
+    "default": {
         "BACKEND": "django_redis.cache.RedisCache",
         "LOCATION": "redis://127.0.0.1:6379/0",
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         }
     },
-    "session": {  # session
+    # session---1号数据库
+    "session": {
         "BACKEND": "django_redis.cache.RedisCache",
         "LOCATION": "redis://127.0.0.1:6379/1",
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         }
     },
+    # 保存图片验证码--2号库
     "verify_image_code": {
         "BACKEND": "django_redis.cache.RedisCache",
         "LOCATION": "redis://127.0.0.1:6379/2",
@@ -136,6 +142,22 @@ CACHES = {
     "sms_code": {
         "BACKEND": "django_redis.cache.RedisCache",
         "LOCATION": "redis://127.0.0.1:6379/3",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    },
+    # 用户浏览记录--4号库
+    "history": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/4",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    },
+    # 保存用户的购物车记录--5号库
+    "carts": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/5",
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         }
@@ -217,8 +239,25 @@ LOGIN_URL = '/login/'
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'  # 指定邮件后端
 EMAIL_HOST = 'smtp.163.com'  # 发邮件主机
 EMAIL_PORT = 25  # 发邮件端口
-EMAIL_HOST_USER = '17826807096@163.com'  # 授权的邮箱
-EMAIL_HOST_PASSWORD = 'UHEHWMYHCUJJFJWQ'  # 邮箱授权时获得的密码，非注册登录密码
-EMAIL_FROM = '17826807096@163.com'  # 发件人抬头
+EMAIL_HOST_USER = 'm57230578@163.com'  # 授权的邮箱
+EMAIL_HOST_PASSWORD = 'QKMXYJZDFZJYDHRA'  # 邮箱授权时获得的密码，非注册登录密码
+EMAIL_FROM = 'm57230578@163.com'  # 发件人抬头
 EMAIL_ACTIVE_URL = 'http://127.0.0.1:8000/emails/verification/'  # 激活地址
-DEFAULT_FROM_EMAIL = '17826807096@163.com'  # 这一项一定要添加内容和EMAIL_HOST_USER需要一致
+DEFAULT_FROM_EMAIL = 'm57230578@163.com'  # 这一项一定要添加内容和EMAIL_HOST_USER需要一致
+
+# FDFS_BASE_URL = 'http://192.168.2.109:8888/'
+FDFS_BASE_URL = 'http://image.meiduo.site:8888/'
+# 指定自定义的Django文件存储类
+DEFAULT_FILE_STORAGE = 'utils.fdfs.fastdfs_storage.FastDFSStorage'
+
+# Haystack
+HAYSTACK_CONNECTIONS = {
+    'default': {
+        'ENGINE': 'haystack.backends.elasticsearch_backend.ElasticsearchSearchEngine',
+        'URL': 'http://192.168.2.109:9200/',  # Elasticsearch服务器ip地址，端口号固定为9200
+        'INDEX_NAME': 'meiduo_mall',  # Elasticsearch建立的索引库的名称
+    },
+}
+
+# 当添加、修改、删除数据时，自动生成索引
+HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.RealtimeSignalProcessor'

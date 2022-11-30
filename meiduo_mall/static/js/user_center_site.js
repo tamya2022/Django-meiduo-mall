@@ -157,10 +157,12 @@ var vm = new Vue({
             this.error_tel = false;
             this.error_email = false;
         },
-        // 展示新增地址弹框时
+        // 展示新增地址弹框
         show_add_site() {
             this.is_show_edit = true;
+            // 清空错误提示信息
             this.clear_all_errors();
+            // 清空原有数据
             this.editing_address_index = '';
             this.form_address.title = '';
             this.form_address.receiver = '';
@@ -172,9 +174,8 @@ var vm = new Vue({
             this.form_address.tel = '';
             this.form_address.email = '';
             this.add_title = '增  加';
-            // this.get_provinces();
         },
-        // 展示编辑地址弹框时
+        // 展示编辑地址弹框
         show_edit_site(index) {
             this.is_show_edit = true;
             this.clear_all_errors();

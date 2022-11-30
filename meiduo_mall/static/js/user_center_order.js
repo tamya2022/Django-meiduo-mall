@@ -37,39 +37,3 @@ var vm = new Vue({
         },
     }
 });
-
-
-
-
-
-
-
-
-// $(function () {
-//
-// });
-//
-//
-// $('.oper_btn').click(function () {
-//     var order_id = $(this).attr('order_id');
-//     var status = $(this).attr('order_status');
-//
-//     if (status == '1') {
-//         // 待支付
-//         var url = '/payment/' + order_id + '/';
-//         $.get(url, function (response) {
-//             if (response.code == '0') {
-//                 location.href = response.alipay_url;
-//             } else {
-//                 console.log(response);
-//                 alert(response.errmsg);
-//             }
-//         });
-//     } else if (status == '4') {
-//         // 待评价
-//         location.href = '/orders/comment/?order_id=' + order_id;
-//     } else {
-//         // 其他：待收货。。。
-//         location.href = '/index/'
-//     }
-// });

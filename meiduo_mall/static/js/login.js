@@ -26,34 +26,20 @@ var vm = new Vue({
         check_pwd: function(){
         	var re = /^[0-9A-Za-z]{8,20}$/;
 			if (re.test(this.password)) {
-                this.error_pwd = false;
+                this.error_password = false;
             } else {
-                this.error_pwd = true;
+                this.error_password = true;
             }
         },
         // 表单提交
         on_submit: function(){
             this.check_username();
             this.check_pwd();
-
-            if (this.error_username == true || this.error_pwd == true) {
+            if (this.error_username === true || this.error_pwd === true) {
                 // 不满足登录条件：禁用表单
 				window.event.returnValue = false
+                // return false;
             }
         },
-        // qq登录
-        qq_login: function(){
-            var next = get_query_string('next') || '/';
-            var url = this.host + '/qq/login/?next=' + next;
-            axios.get(url, {
-                    responseType: 'json'
-                })
-                .then(response => {
-                    location.href = response.data.login_url;
-                })
-                .catch(error => {
-                    console.log(error.response);
-                })
-        }
     }
 });

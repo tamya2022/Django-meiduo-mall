@@ -12,8 +12,10 @@ from django_redis import get_redis_connection
 # Create your views here.
 from itsdangerous import BadData
 
+from apps.carts.utils import merge_cart_cookie_to_redis
 from apps.users import constants
 from apps.users.models import User, Address
+from apps.goods import models
 from django.contrib.auth import authenticate, login, logout
 
 from utils.response_code import RETCODE
@@ -123,8 +125,7 @@ class UpdateAddressView(View):
         tel = json_dict.get('tel')
         email = json_dict.get('email')
 
-        # 2.校验,判空正则
-        # 校验参数
+        # 2.校验参数,判空正则
         if not all([receiver, province_id, city_id, district_id, place, mobile]):
             return http.HttpResponseForbidden('缺少必传参数')
         if not re.match(r'^1[3-9]\d{9}$', mobile):
@@ -315,7 +316,7 @@ class VerifyEmailView(View):
         except User.DoesNotExist as e:
             return http.HttpResponseForbidden('无效的token')
 
-        # 4. 修改 email_active
+        # 4.修改 email_active
         try:
             user.email_active = True
             user.save()
@@ -324,7 +325,7 @@ class VerifyEmailView(View):
             return http.HttpResponseServerError('激活邮件失败')
 
         # 5.成功 重定向的首页
-        return redirect(reverse('users:info'))
+        return redirect(reverse('contents:index'))
 
 
 class EmailView(LoginRequiredJSONMixin, View):
@@ -366,77 +367,6 @@ class UserInfoView(LoginRequiredMixin, View):
         }
 
         return render(request, 'user_center_info.html', context)
-
-
-class LogoutView(View):
-    def get(self, request):
-        """
-        退出
-        :param request:
-        :return:
-        """
-        # 清空session
-        logout(request)
-
-        # 清空cookie
-        response = redirect(reverse('users:login'))
-        response.delete_cookie('username')
-        return response
-
-
-class LoginView(View):
-    def get(self, request):
-        """
-        登录
-        :param request:
-        :return:
-        """
-        return render(request, 'login.html')
-
-    def post(self, request):
-        # 1.接收三个参数
-        username = request.POST.get('username')
-        password = request.POST.get('password')
-        remembered = request.POST.get('remembered')
-
-        # 2.校验参数
-        if not all([username, password]):
-            return http.HttpResponseForbidden('参数不齐全')
-
-        # 2.1 用户名
-        if not re.match(r'^[a-zA-Z0-9_-]{5,20}$', username):
-            return http.HttpResponseForbidden('请输入5-20个字符的用户名')
-        # 2.2 密码
-        if not re.match(r'^[0-9A-Za-z]{8,20}$', password):
-            return http.HttpResponseForbidden('请输入8-20位的密码')
-
-        # 认证登录用户
-        user = authenticate(username=username, password=password)
-        if user is None:
-            return render(request, 'login.html', {'account_errmsg': '用户名或密码错误'})
-
-        # 实现状态保持
-        login(request, user)
-        # 设置状态保持的周期
-        if remembered != 'on':
-            # 没有记住用户：浏览器会话结束就过期
-            request.session.set_expiry(0)
-        else:
-            # 记住用户：None表示两周后过期
-            request.session.set_expiry(None)
-
-        # response = redirect(reverse('contents:index'))
-        # 接收next的值==路由
-        next = request.GET.get('next')
-        if next:
-            response = redirect(next)
-        else:
-            # 6.返回响应结果
-            response = redirect(reverse('contents:index'))
-        # 注册时用户名写入到cookie，有效期15天
-        response.set_cookie('username', user.username, max_age=3600 * 24 * 15)
-        # 响应登录结果
-        return response
 
 
 class RegisterView(View):
@@ -516,10 +446,143 @@ class UsernameCountView(View):
         try:
             count = User.objects.filter(username=username).count()
         except DatabaseError as e:
-            return http.JsonResponse({'code': '400', 'errmsg': '数据库异常'})
+            return http.JsonResponse({'code': RETCODE.DBERR, 'errmsg': '数据库异常'})
         # 返回响应结果
         return http.JsonResponse({
-            "code": '0',
+            "code": RETCODE.OK,
             "errmsg": "ok",
             "count": count,
         })
+
+
+# 3.判断手机号是否重
+class MobileCountView(View):
+    def get(self, request, mobile):
+        # 1.接收 校验参数-路径里面已经正则校验过了
+        # 2. 去数据库 查询 手机号的 个数
+        try:
+            count = User.objects.filter(mobile=mobile).count()
+        except DatabaseError as e:
+            return http.JsonResponse({'code': RETCODE.DBERR, 'errmsg': '数据库异常'})
+
+        # 3.返回给前端数据 Json
+        return http.JsonResponse({
+            'code': RETCODE.OK,
+            'errmsg': 'ok',
+            'count': count
+        })
+
+
+class LogoutView(View):
+    def get(self, request):
+        """
+        退出
+        :param request:
+        :return:
+        """
+        # 清空session
+        logout(request)
+
+        # 清空cookie
+        response = redirect(reverse('users:login'))
+        response.delete_cookie('username')
+        return response
+
+
+class LoginView(View):
+    def get(self, request):
+        """
+        登录
+        :param request:
+        :return:
+        """
+        return render(request, 'login.html')
+
+    def post(self, request):
+        # 1.接收三个参数
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        remembered = request.POST.get('remembered')
+
+        # 2.校验参数
+        if not all([username, password]):
+            return http.HttpResponseForbidden('参数不齐全')
+
+        # 2.1 用户名
+        if not re.match(r'^[a-zA-Z0-9_-]{5,20}$', username):
+            return http.HttpResponseForbidden('请输入5-20个字符的用户名')
+        # 2.2 密码
+        if not re.match(r'^[0-9A-Za-z]{8,20}$', password):
+            return http.HttpResponseForbidden('请输入8-20位的密码')
+
+        # 认证登录用户
+        user = authenticate(username=username, password=password)
+        if user is None:
+            return render(request, 'login.html', {'account_errmsg': '用户名或密码错误'})
+
+        # 实现状态保持
+        login(request, user)
+        # 设置状态保持的周期
+        if remembered != 'on':
+            # 没有记住用户：浏览器会话结束就过期
+            request.session.set_expiry(0)
+        else:
+            # 记住用户：None表示两周后过期
+            request.session.set_expiry(None)
+
+        # response = redirect(reverse('contents:index'))
+        # 接收next的值==路由
+        next = request.GET.get('next')
+        if next:
+            response = redirect(next)
+        else:
+            # 6.返回响应结果
+            response = redirect(reverse('contents:index'))
+        # 注册时用户名写入到cookie，有效期15天
+        response.set_cookie('username', user.username, max_age=3600 * 24 * 15)
+        response = merge_cart_cookie_to_redis(request=request, user=user, response=response)
+        # 响应登录结果
+        return response
+
+
+class UserBrowseHistory(LoginRequiredJSONMixin, View):
+    """用户浏览记录"""
+
+    def post(self, request):
+        """保存用户商品浏览记录"""
+        json_str = request.body.decode()
+        json_dict = json.loads(json_str)
+        sku_id = json_dict.get('sku_id')
+
+        try:
+            models.SKU.objects.get(id=sku_id)
+        except models.SKU.DoesNotExist:
+            return http.HttpResponseForbidden('参数sku_id错误')
+
+        redis_conn = get_redis_connection('history')
+        user_history_key = 'history_%s' % request.user.id
+        pl = redis_conn.pipeline()
+        # 三步骤: 去重 保存(最新的在最前面) 截取(要求最多存5个)
+        pl.lrem(user_history_key, 0, sku_id)
+        pl.lpush(user_history_key, sku_id)
+        pl.ltrim(user_history_key, 0, 4)
+        pl.execute()
+
+        return http.JsonResponse({'code': RETCODE.OK, 'errmsg': 'OK'})
+
+    def get(self, request):
+        """查询用户商品浏览记录"""
+        redis_conn = get_redis_connection('history')
+        user_history_key = 'history_%s' % request.user.id
+        sku_ids = redis_conn.lrange(user_history_key, 0, -1)
+
+        skus = []
+        for sku_id in sku_ids:
+            sku = models.SKU.objects.get(id=sku_id)
+            skus.append({
+                'id': sku.id,
+                'name': sku.name,
+                'price': sku.price,
+                'default_image_url': sku.default_image.url
+            })
+        return http.JsonResponse({'code': RETCODE.OK, 'errmsg': 'OK', 'skus': skus})

@@ -4,6 +4,7 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
     <title>美多商城-用户中心</title>
+    <link crossorigin="" rel="shortcut icon" type="image/x-icon" href="{{ static('favicon.ico') }}">
     <link rel="stylesheet" type="text/css" href="{{ static('css/reset.css') }}">
     <link rel="stylesheet" type="text/css" href="{{ static('css/main.css') }}">
     <script type="text/javascript" src="{{ static('js/vue-2.5.16.js') }}"></script>
@@ -24,9 +25,9 @@
                     <span>|</span>
                     <a href="{{ url('users:info') }}">用户中心</a>
                     <span>|</span>
-                    <a href="{{ url('users:info') }}">我的购物车</a>
+                    <a href="{{ url('carts:info') }}">我的购物车</a>
                     <span>|</span>
-                    <a href="{{ url('users:info') }}">我的订单</a>
+                    <a href="{{ url('orders:info', args=(1, ))  }}">我的订单</a>
                 </div>
             </div>
         </div>
@@ -53,7 +54,7 @@
             <h3>用户中心</h3>
             <ul>
                 <li><a href="{{ url('users:info') }}" >· 个人信息</a></li>
-                <li><a href="{{ url('users:info') }}">· 全部订单</a></li>
+                <li><a href="{{ url('orders:info', args=(1, ))  }}">· 全部订单</a></li>
                 <li><a href="{{ url('users:address') }}" class="active">· 收货地址</a></li>
                 <li><a href="{{ url('users:password') }}">· 修改密码</a></li>
             </ul>
@@ -159,7 +160,7 @@
 </div>
 <script type="text/javascript">
     let addresses = {{ addresses | safe }};
-    let default_address_id = {{ user.default_address_id }};
+    let default_address_id = {{ default_address_id }};
 </script>
 <script type="text/javascript" src="{{ static('js/host.js') }}"></script>
 <script type="text/javascript" src="{{ static('js/common.js') }}"></script>

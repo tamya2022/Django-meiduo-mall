@@ -7,7 +7,7 @@ var vm = new Vue({
         cart_total_count: 0, // 购物车总数量
         carts: [], // 购物车数据,
         hots: [],
-        category_id: category_id,
+        category_id: category_id, // 简写category_id
         username: '',
     },
     mounted(){
@@ -49,7 +49,7 @@ var vm = new Vue({
                 .then(response => {
                     this.hots = response.data.hot_skus;
                     for (var i = 0; i < this.hots.length; i++) {
-                        this.hots[i].url = '/goods/' + this.hots[i].id + '.html';
+                        this.hots[i].url = '/detail/' + this.hots[i].id;
                     }
                 })
                 .catch(error => {

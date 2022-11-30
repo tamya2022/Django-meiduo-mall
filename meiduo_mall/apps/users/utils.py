@@ -3,7 +3,8 @@ import logging
 
 from django.contrib.auth.backends import ModelBackend
 from apps.users.models import User
-from meiduo_mall import settings
+# from meiduo_mall.settings import dev
+from django.conf import settings
 from utils.secret import SecretOauth
 
 logger = logging.getLogger('django')
