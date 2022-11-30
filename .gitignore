@@ -5,6 +5,8 @@ __pycache__/
 
 # my
 yuntongxun/
+migrations/
+
 *.log
 .idea/
 
